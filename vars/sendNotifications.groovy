@@ -3,7 +3,7 @@
 /**
  * Send a slack notifications if the build status has changed
  */
-def call(def notifyStandalone = 'false')
+def call(def notifyStandalone = false)
 {
 	// default to success
 	def buildStatus = 'SUCCESS'
