@@ -5,32 +5,9 @@
  */
 def call(def notifyStandalone = false)
 {
-	// default to success
-	def buildStatus = 'SUCCESS'
-	def prevBuildStatus = 'SUCCESS'
-	if (currentBuild.currentResult) {
-		buildStatus = currentBuild.currentResult
-	}
-	if (currentBuild.previousBuild && currentBuild.previousBuild.currentResult) {
-		prevBuildStatus = currentBuild.previousBuild.currentResult
-	}
-
-	// Treat Aborted as Failure and NotBuild as Success
-	String generalizedStatus = buildStatus
-	if (generalizedStatus == 'ABORTED') {
-		generalizedStatus = 'FAILURE'
-	}
-	if (generalizedStatus == 'NOT_BUILT') {
-		generalizedStatus = 'SUCCESS'
-	}
-
-	String generalizedPrevStatus = prevBuildStatus
-	if (generalizedPrevStatus == 'ABORTED') {
-		generalizedPrevStatus = 'FAILURE'
-	}
-	if (generalizedPrevStatus == 'NOT_BUILT') {
-		generalizedPrevStatus = 'SUCCESS'
-	}
+	String buildStatus = currentBuild.currentResult ?: 'SUCCESS'
+	String generalizedStatus = generalizeBuildStatus(currentBuild)
+	String generalizedPrevStatus = generalizeBuildStatus(currentBuild.previousBuild)
 
 	boolean successful = (generalizedStatus == 'SUCCESS')
 	boolean backToNormal = (generalizedStatus == 'SUCCESS' && generalizedPrevStatus != 'SUCCESS')
@@ -68,4 +45,13 @@ def call(def notifyStandalone = false)
 	// Send notifications
 	echo "Send to Slack: [${channel}] ${color}: ${message}"
 	slackSend(color: color, message: message, channel: channel)
+}
+
+/**
+ * Maps the build status to fewer statuses (SUCCESS, UNSTABLE, FAILURE) for simplicity.
+ */
+String generalizeBuildStatus(def build)
+{
+	def statusMapping = ['ABORTED': 'FAILURE', 'NOT_BUILT': 'SUCCESS']
+	return statusMapping.get(build?.currentResult, build?.currentResult ?: 'SUCCESS')
 }
