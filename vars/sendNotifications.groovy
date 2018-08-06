@@ -3,7 +3,7 @@
 /**
  * Send a slack notifications if the build status has changed
  */
-def call(def notifyStandalone = false)
+def call(def buildStandalone = false)
 {
 	// default to success
 	def buildStatus = 'SUCCESS'
@@ -32,13 +32,22 @@ def call(def notifyStandalone = false)
 		generalizedPrevStatus = 'SUCCESS'
 	}
 
+	// From here on we only need to handle: SUCCESS, UNSTABLE, FAILURE
 	boolean successful = (generalizedStatus == 'SUCCESS')
+	boolean failed = (generalizedStatus == 'FAILURE')
 	boolean backToNormal = (generalizedStatus == 'SUCCESS' && generalizedPrevStatus != 'SUCCESS')
 	boolean unchanged = (generalizedStatus == generalizedPrevStatus)
 
+	// 'non-standalone' builds:
 	// do not report subsequent same results
-	// only report success if back to normal
-	if (unchanged || (successful && !backToNormal)) {
+	// only report success if back to normal (covered by above requirement)
+	//
+	// 'standalone' builds:
+	// only report failures, unstable is used for 'expected' failure states
+	// (eg: web triggers a build even if the program upload failed, so there
+	// is no program to download and also not shown on WEB)
+	// report subsequent failures to get aware of longstanding broken builds
+	if ((!buildStandalone && unchanged) || (buildStandalone && !failed)) {
 		return
 	}
 
@@ -47,7 +56,7 @@ def call(def notifyStandalone = false)
 	if (backToNormal) {
 		buildStatusText = "${buildStatus} (Back to Normal)"
 	}
-	def message = "${buildStatusText}: '${env.JOB_NAME} [#${env.BUILD_NUMBER}]' (<${env.BUILD_URL}|Open>)"
+	def message = "${buildStatusText}: '${env.JOB_NAME} [${env.BUILD_DISPLAY_NAME}]' (<${env.BUILD_URL}|Open>)"
 
 	// Set color
 	def color = 'good'
@@ -61,7 +70,7 @@ def call(def notifyStandalone = false)
 
 	// Set channel
 	def channel = "#ci-status"
-	if (notifyStandalone) {
+	if (buildStandalone) {
 		channel = "${channel},#ci-status-standalone"
 	}
 
