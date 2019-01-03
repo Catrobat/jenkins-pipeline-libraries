@@ -9,15 +9,6 @@ def call()
 	call(false)
 }
 
-def call(def buildStandalone) {
-	List channels = ['#ci-status']
-	if (buildStandalone) {
-		channels += '#ci-status-standalone'
-	}
-
-	call(channels)
-}
-
 def call(Map args) {
 	if (args.size() == 0) {
 		call()
@@ -28,7 +19,7 @@ def call(Map args) {
 	}
 }
 
-def call(List channels)
+def call(boolean buildStandalone)
 {
 	String buildStatus = currentBuild.currentResult ?: 'SUCCESS'
 	String generalizedStatus = generalizeBuildStatus(currentBuild)
@@ -70,9 +61,15 @@ def call(List channels)
 		color = 'danger'
 	}
 
+	// Set channel
+	def channel = "#ci-status"
+	if (buildStandalone) {
+		channel = "${channel},#ci-status-standalone"
+	}
+
 	// Send notifications
-	echo "Send to Slack: $channels ${color}: ${message}"
-	slackSend(color: color, message: message, channel: channels.join(','))
+	echo "Send to Slack: [${channel}] ${color}: ${message}"
+	slackSend(color: color, message: message, channel: channel)
 }
 
 /**
