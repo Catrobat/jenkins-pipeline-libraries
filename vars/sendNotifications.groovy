@@ -3,7 +3,32 @@
 /**
  * Send a slack notifications if the build status has changed
  */
-def call(def buildStandalone = false)
+
+def call()
+{
+	call(false)
+}
+
+def call(def buildStandalone) {
+	List channels = ['#ci-status']
+	if (buildStandalone) {
+		channels += '#ci-status-standalone'
+	}
+
+	call(channels)
+}
+
+def call(Map args) {
+	if (args.size() == 0) {
+		call()
+	} else if (args.size() == 1 && args.containsKey('buildStandalone')) {
+		call(args['buildStandalone'] as boolean)
+	} else {
+		throw new IllegalArgumentException("Called with unsupported parameters ${args}.The only supported named paramter is buildStandalone.")
+	}
+}
+
+def call(List channels)
 {
 	String buildStatus = currentBuild.currentResult ?: 'SUCCESS'
 	String generalizedStatus = generalizeBuildStatus(currentBuild)
@@ -45,15 +70,9 @@ def call(def buildStandalone = false)
 		color = 'danger'
 	}
 
-	// Set channel
-	def channel = "#ci-status"
-	if (buildStandalone) {
-		channel = "${channel},#ci-status-standalone"
-	}
-
 	// Send notifications
-	echo "Send to Slack: [${channel}] ${color}: ${message}"
-	slackSend(color: color, message: message, channel: channel)
+	echo "Send to Slack: $channels ${color}: ${message}"
+	slackSend(color: color, message: message, channel: channels.join(','))
 }
 
 /**
