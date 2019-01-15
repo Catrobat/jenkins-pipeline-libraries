@@ -20,7 +20,7 @@ def call(List channels = ['#ci-status']) {
 
 def buildStatusToColor(def build) {
     def gray = '#E8E8E8'
-    def mapping = ['ABORTED': gray,  'FAILURE': 'danger', 'NOT_BUILT': gray, 'SUCCESS': 'good', 'UNSTABLE': gray]
+    def mapping = ['ABORTED': gray,  'FAILURE': 'danger', 'NOT_BUILT': gray, 'SUCCESS': 'good', 'UNSTABLE': 'warning']
     return mapping.get(build.currentResult, gray)
 }
 
