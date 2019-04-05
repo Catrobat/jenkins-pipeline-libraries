@@ -10,6 +10,7 @@ def call(def localfile, def upload)
 		echo "Upload successful: curl reported HTTP status code: ${httpStatus}"
 	} else {
 		echo "Upload failed: curl reported HTTP status code: ${httpStatus}"
+		echo "Upload command was curl --write-out %{http_code} --silent --output /dev/stderr -X POST -k -F upload=@${localfile} '${upload}'" 
 		currentBuild.result = 'FAILURE'
 	}
 }
