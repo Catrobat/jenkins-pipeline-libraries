@@ -45,7 +45,7 @@ String retrieveJacocoHtmlDir(String reportDir) {
 }
 
 void writeCoverageCsvFile(String reportXmlFile, String csvFile) {
-    String source = '''#!/usr/bin/env python2
+    String source = '''
 import sys
 import xml.etree.ElementTree as ET
 
@@ -65,7 +65,7 @@ def write_coverage_csv(report_file, csv_file):
             missed = float(counter.get('missed'))
             values.append(str(100 * (covered / (covered + missed))))
 
-    names, values = zip(*(sorted(zip(names, values))))
+    names, values = list(zip(*(sorted(zip(names, values)))))
 
     with open(csv_file, 'w') as f:
         f.write(','.join(names) + '\\n' + ','.join(values))
