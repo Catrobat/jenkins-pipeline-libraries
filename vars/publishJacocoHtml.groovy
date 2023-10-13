@@ -45,7 +45,7 @@ String retrieveJacocoHtmlDir(String reportDir) {
 }
 
 void writeCoverageCsvFile(String reportXmlFile, String csvFile) {
-    String source = '''
+    String source = '''#!/usr/bin/env python3
 import sys
 import xml.etree.ElementTree as ET
 
